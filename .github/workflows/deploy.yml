@@ -15,17 +15,26 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Inject Supabase credentials
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       run: |
         # Create the production reset-password.html from template
         cp reset-password.template.html reset-password.html
         
-        # Replace placeholders with actual values from secrets
-        sed -i "s|{{SUPABASE_URL}}|${{ secrets.SUPABASE_URL }}|g" reset-password.html
-        sed -i "s|{{SUPABASE_ANON_KEY}}|${{ secrets.SUPABASE_ANON_KEY }}|g" reset-password.html
+        # Replace placeholders with actual values from environment variables
+        # Using environment variables is more secure and handles special characters better
+        sed -i "s|{{SUPABASE_URL}}|${SUPABASE_URL}|g" reset-password.html
+        sed -i "s|{{SUPABASE_ANON_KEY}}|${SUPABASE_ANON_KEY}|g" reset-password.html
+        
+        # Debug: Show what placeholders remain (first 3 lines only)
+        echo "Checking for remaining placeholders:"
+        grep "{{" reset-password.html | head -3 || echo "No placeholders found - success!"
         
         # Verify that placeholders were replaced
         if grep -q "{{" reset-password.html; then
           echo "Error: Some placeholders were not replaced!"
+          grep "{{" reset-password.html | head -5
           exit 1
         fi
         
