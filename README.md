@@ -56,4 +56,4 @@ sed -i "s|{{SUPABASE_ANON_KEY}}|your-key-here|g" reset-password.html
 - **Source Code Clean**: No credentials visible in Git history
 - **Secure Deployment**: Credentials only exist in deployed version
 - **Failed Build Protection**: Build fails if credentials aren't properly injected
-- **Secret Management**: Leverages GitHub's secure secret storage
+- **Secret Management**: Leverages GitHub's secure secret storage# Trigger deployment with secure credential injection
