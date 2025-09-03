@@ -1,0 +1,50 @@
+name: Deploy Password Reset Page
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Inject Supabase credentials
+      run: |
+        # Create the production reset-password.html from template
+        cp reset-password.template.html reset-password.html
+        
+        # Replace placeholders with actual values from secrets
+        sed -i "s|{{SUPABASE_URL}}|${{ secrets.SUPABASE_URL }}|g" reset-password.html
+        sed -i "s|{{SUPABASE_ANON_KEY}}|${{ secrets.SUPABASE_ANON_KEY }}|g" reset-password.html
+        
+        # Verify that placeholders were replaced
+        if grep -q "{{" reset-password.html; then
+          echo "Error: Some placeholders were not replaced!"
+          exit 1
+        fi
+        
+        echo "✅ Credentials injected successfully"
+    
+    - name: Verify file structure
+      run: |
+        echo "Generated files:"
+        ls -la reset-password.html
+        echo ""
+        echo "File size: $(wc -c < reset-password.html) bytes"
+        echo "Contains Supabase URL: $(grep -c "const SUPABASE_URL = '" reset-password.html)"
+        echo "Contains Supabase Key: $(grep -c "const SUPABASE_ANON_KEY = '" reset-password.html)"
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        publish_branch: gh-pages
+        exclude_assets: '.github,reset-password.template.html'
